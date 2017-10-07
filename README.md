@@ -1,5 +1,5 @@
 # log4sh
-A Bash logging library based on goozbach/log4bats
+A Bash logging library based on [goozbach/log4bats](https://github.com/goozbach/log4bats). At the beginning it was fork but now is almost completely rewritten.
 
 ## Install
 
