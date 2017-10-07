@@ -4,7 +4,7 @@ LIBDIR  = $(DESTDIR)$(PREFIX)/lib
 MANDIR  = $(DESTDIR)$(PREFIX)/share/man/man1
 DOCDIR  = $(DESTDIR)$(PREFIX)/share/doc
 
-all: doc man wiki
+all: man
 
 .PHONY: clean
 
