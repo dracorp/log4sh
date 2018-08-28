@@ -1,5 +1,7 @@
-# log4sh
-A Bash logging library based on [goozbach/log4bats](https://github.com/goozbach/log4bats). At the beginning it was fork but now is almost completely rewritten.
+log4sh
+======
+
+A sh logging library, based on [log4bats](https://github.com/goozbach/log4bats).
 
 ## Install
 
@@ -10,13 +12,151 @@ A Bash logging library based on [goozbach/log4bats](https://github.com/goozbach/
 To create documentation for wiki you need [Pod-Simple-Wiki](http://search.cpan.org/~jmcnamara/Pod-Simple-Wiki/).
 pod2man and pod2text belong to Perl
 
+## USAGE
+
+```
+    . log4sh.sh [-l level] [-t 0|1] [-d 0|1] [-c 0|1] [-qh] [-f file] [-b path to GNU date]
+```
+
+## OPTIONS
+
+    -l level
+    The priority of the log message, logging level.
+    -t 0|1
+    Switch on/off data/timestamp
+    -T 0|1
+    Switch on/off data/timestamp only in a log file
+    -D 0|1
+    Write DEBUG information to logfile
+    -c 0|1
+    Switch on/off colors.
+    -q
+    Be quiet.
+    -f file
+    The path to the log file.
+    -d file
+    The path to the GNU date if different from _/opt/freeware/bin/date_ or there is no GNU date in default PATH.
+    -p
+    Use in-built Perl script which replace GNU date. It works more slower.
+
+See also [CONTROL VARIABLES](#CONTROL VARIABLES). For incorrect option it returns 1.
+
+## EXAMPLES
+
+
+```
+    $ . log4sh.sh
+    $ INFO lorem ipsum
+    2016-11-29-14:07:42 [INFO] lorem ipsum
+
+    $ FATAL another fatal error
+    2016-11-29-14:08:20 [FATAL] another fatal error
+
+    $ LOG4SH_DATE=0 # disable timestamp
+    [FATAL] another fatal error
+
+    $ LOG4SH_LEVEL=ERROR # logging only error, fatal
+
+    $ LOG4SH_FILE='some_program.log'
+    $ INFO 'a message' # write also to log file with timestamp
+    [INFO] a message
+```
+
+## FUNCTIONS
+
+There are following functions:
+
+* log_fatal, FATAL
+* log_die, DIE
+    As log_fatal, but it also exits from shell.
+* log_error, ERROR
+* LOGEXIT
+    As log_die or DIE, but it exits or returns from a function.
+* log_warn, WARN
+* log_info, INFO
+* log_debug, DEBUG
+* log_trace, TRACE
+
+## CONTROL VARIABLES
+
+These variables can be overwritten in a shell.
+
+* LOG4SH_DATE=1
+    
+Date/timestamp before each message ( to STDOUT and a log file )
+
+* LOG4SH_DATE_LOG=1
+    
+    Print date/timestamp only to a log file
+
+* LOG4SH_DATE_FORMAT="+%F-%T"
+
+    Default format for a timestamp. Same as format for [date(1)](date(1)).
+
+* LOG4SH_DATE_BIN=''
+
+    Absolute path to GNU date. If you use this library on AIX machine you should define absolute path to the GNU date program.
+    The library checks: path /opt/freeware/bin/date for existing and date for default PATH. The GNU date supports _--version_ switch.
+    
+* LOG4SH_FORMAT=''
+
+    A format for the header of each message. It could overwrite the default format: 'timestamp [log level]'
+    
+* LOG4SH_COLOR=1
+
+    Does it use colors? There are following default colors:
+
+* ERROR   - red
+* FATAL   - red
+* INFO    - white
+* SUCCESS - green
+* WARN    - yellow
+* DEBUG   - blue
+* TRACE   - cyan
+
+There are following defined colors:
+
+* LOG4SH_DEFAULT_COLOR
+* LOG4SH_ERROR_COLOR
+* LOG4SH_FATAL_COLOR
+* LOG4SH_INFO_COLOR
+* LOG4SH_SUCCESS_COLOR
+* LOG4SH_WARN_COLOR
+* LOG4SH_DEBUG_COLOR
+* LOG4SH_TRACE_COLOR
+
+You can also overwrite them.
+
+* LOG4SH_QUIET=0
+
+    Does it be quiet? It is not equivalent of NONE level. This disables logging only to STDOUT. NONE level disables all messages, even to log file.
+
+* LOG4SH_LEVEL=INFO
+
+The priority of the log message, logging level. Same as Log4Perl and Log4J. There are following and allowed levels:
+
+* ALL (synonym for TRACE)
+* TRACE
+* DEBUG
+* INFO
+* WARN
+* ERROR
+* FATAL
+* NONE (no logging)
+
+Eeach level includes the one below. Ie. **WARN** will print **WARN**, **ERROR**, and **FATAL** messages.
+
+* LOG4SH_FILE=''
+
+    Where messages are saved.
+
 ## Todo
 
 * [ ] create initialize function like for Log::Log4perl
 * [ ] replace \_log4sh_date function with something better
 * [ ] replace global variables with local
 
-## Positional parameters
+## Positional parameters - deprecated
 
 If your script parse positional argument you should to do something like this:
 
