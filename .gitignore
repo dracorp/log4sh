@@ -1,3 +1,6 @@
+orig/
+*.1
+*.wiki
 doc/*.txt
 doc/*.1
 doc/*.wiki

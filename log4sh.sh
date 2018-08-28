@@ -75,11 +75,11 @@ _clean_after_log4sh() {
         rm -f "$_perlDate"
     fi
 }
-function _usage {
+function __usage {
     printf "Usage:\n. log4sh.sh [-l level] [-t 0|1] [-T 0|1] [-c 0|1] [-qhD] [-f file] [-b path to GNU date]\n"
 }
-function _help {
-    _usage
+function __help {
+    __usage
     printf "\t-l level - log level\n"
     printf "\t-t 0|1   - switch on/off data/timestamp\n"
     printf "\t-T 0|1   - switch on/off data/timestamp only in a log file\n"
@@ -91,25 +91,35 @@ function _help {
     printf "\t-p       - use Perl replacment for GNU date, it's slower\n"
 }
 
-PROGRAM_OPTIONS='l:t:T:c:f:d:Dqp'
-eval set -- $(getopt $PROGRAM_OPTIONS $* 2>/dev/null)
-while [[ "$1" != -- ]]; do
-    case $1 in
-        -c) LOG4SH_COLOR=$2; shift ;;
-        -d) LOG4SH_DATE_BIN=$2; shift ;;
-        -f) LOG4SH_FILE=$2; shift ;;
-        -l) LOG4SH_LEVEL=$2; shift ;;
-        -t) LOG4SH_DATE=$2; shift ;;
-        -T) LOG4SH_DATE_LOG=$2; shift ;;
-        -D) LOG4SH_DEBUG_LOG=1 ;;
-        -h|--help) _help; return 1;;
-        -q) LOG4SH_QUIET=1 ;;
-        -p) LOG4SH_DATE_BIN=perl ;;
-        *) _usage; return 1 ;;
-    esac
-    shift
-done
-shift # remove --
+function __parse_positional_parameters {
+    typeset program_options='c:d:f:l:t:T:Dhqp'
+    typeset options retval
+    options=$(getopt $program_options $* 2>/dev/null)
+    retval=$?
+    if (( retval )); then
+        __usage
+    fi
+    eval set -- "$options"
+    while [[ "$1" != -- ]]; do
+        case $1 in
+            -c) LOG4SH_COLOR=$2; shift ;;
+            -d) LOG4SH_DATE_BIN=$2; shift ;;
+            -f) LOG4SH_FILE=$2; shift ;;
+            -l) LOG4SH_LEVEL=$2; shift ;;
+            -t) LOG4SH_DATE=$2; shift ;;
+            -T) LOG4SH_DATE_LOG=$2; shift ;;
+            -D) LOG4SH_DEBUG_LOG=1 ;;
+            -h) __help; return 1;;
+            -q) LOG4SH_QUIET=1 ;;
+            -p) LOG4SH_DATE_BIN=perl ;;
+            *) __usage; return 1 ;;
+        esac
+        shift
+    done
+    shift # remove --
+}
+
+__parse_positional_parameters "$@"
 
 # some default values, can be overwritten in shell
 : ${LOG4SH_DATE=1}                            # do print timestamp?
