@@ -39,7 +39,7 @@ pod2man and pod2text belong to Perl
     -p
     Use in-built Perl script which replace GNU date. It works more slower.
 
-See also [CONTROL VARIABLES](#CONTROL VARIABLES). For incorrect option it returns 1.
+See also [CONTROL VARIABLES](#CONTROL-VARIABLES). For incorrect option it returns 1.
 
 ## EXAMPLES
 
