@@ -26,7 +26,7 @@
 #       log4sh
 #
 #       Without this log4sh.sh modifies positional parameters.
-#       TODO: fix it
+#       FIXED
 #
 # EXAMPLES
 #       $ . log4sh.sh || exit 1
@@ -62,19 +62,6 @@
 #     LIB_DIRECTORY="$HOME/bin/lib"
 # fi
 
-_perlDate="/tmp/perlDate-$$.pl"
-if [ -n "$BASH_VERSION" ]; then
-    shopt -s extglob
-    trap _clean_after_log4sh SIGINT SIGTERM EXIT
-else
-    # Probably Ksh
-    trap _clean_after_log4sh INT TERM EXIT
-fi
-_clean_after_log4sh() {
-    if [[ -n "$_perlDate" && -f "$_perlDate" ]]; then
-        rm -f "$_perlDate"
-    fi
-}
 function __usage {
     printf "Usage:\n. log4sh.sh [-l level] [-t 0|1] [-T 0|1] [-c 0|1] [-qhD] [-f file] [-b path to GNU date]\n"
 }
@@ -145,12 +132,7 @@ __parse_positional_parameters "$@"
 
 if [[ -n "$LOG4SH_DATE_BIN" && $LOG4SH_DATE_BIN == 'perl' ]]; then
     _log4sh_date() {
-#         $LIB_DIRECTORY/util/date.pl "$@"
-#         return
-# read -r -d '' _PERL_CODE << 'EOF'
-        if [ ! -x "$_perlDate" ]; then
-cat << 'EOF' > "$_perlDate"
-#!/usr/bin/env perl
+       typeset script=$(cat <<'EOF'
 use POSIX qw(strftime);
 use Time::HiRes qw(time);
 use English qw( -no_match_vars );
