@@ -153,8 +153,8 @@ Eeach level includes the one below. Ie. **WARN** will print **WARN**, **ERROR**,
 ## Todo
 
 * [ ] create initialize function like for Log::Log4perl
-* [ ] replace \_log4sh_date function with something better
-* [x] replace global variables with local
+* [x] replace \_log4sh_date function with something better
+* [ ] replace global variables with local
 
 ## Positional parameters - deprecated
 
