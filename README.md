@@ -15,7 +15,7 @@ pod2man and pod2text belong to Perl
 ## USAGE
 
 ```
-    . log4sh.sh [-l level] [-t 0|1] [-d 0|1] [-c 0|1] [-qh] [-f file] [-b path to GNU date]
+    . log4sh.sh [-l level] [-t 0|1] [-d 0|1] [-c 0|1] [-qhup] [-f file] [-d path to GNU date]
 ```
 
 ## OPTIONS
@@ -38,6 +38,10 @@ pod2man and pod2text belong to Perl
     The path to the GNU date if different from _/opt/freeware/bin/date_ or there is no GNU date in default PATH.
     -p
     Use in-built Perl script which replace GNU date. It works more slower.
+    -u
+    Show full usage with additional information
+    -h
+    show help
 
 See also [CONTROL VARIABLES](#control-variables). For incorrect option it returns 1.
 
@@ -82,11 +86,11 @@ There are following functions:
 These variables can be overwritten in a shell.
 
 * LOG4SH_DATE=1
-    
+
 Date/timestamp before each message ( to STDOUT and a log file )
 
 * LOG4SH_DATE_LOG=1
-    
+
     Print date/timestamp only to a log file
 
 * LOG4SH_DATE_FORMAT="+%F-%T"
@@ -97,11 +101,11 @@ Date/timestamp before each message ( to STDOUT and a log file )
 
     Absolute path to GNU date. If you use this library on AIX machine you should define absolute path to the GNU date program.
     The library checks: path /opt/freeware/bin/date for existing and date for default PATH. The GNU date supports _--version_ switch.
-    
+
 * LOG4SH_FORMAT=''
 
     A format for the header of each message. It could overwrite the default format: 'timestamp [log level]'
-    
+
 * LOG4SH_COLOR=1
 
     Does it use colors? There are following default colors:
@@ -116,14 +120,22 @@ Date/timestamp before each message ( to STDOUT and a log file )
 
 There are following defined colors:
 
-* LOG4SH_DEFAULT_COLOR
-* LOG4SH_ERROR_COLOR
-* LOG4SH_FATAL_COLOR
-* LOG4SH_INFO_COLOR
-* LOG4SH_SUCCESS_COLOR
-* LOG4SH_WARN_COLOR
-* LOG4SH_DEBUG_COLOR
-* LOG4SH_TRACE_COLOR
+ * LOG4SH_COLOR_BOLD="\e[1;37m"
+ * LOG4SH_COLOR_RED="\e[1;31m"
+ * LOG4SH_COLOR_WHITE="\e[1;37m"
+ * LOG4SH_COLOR_GREEN="\e[1;32m"
+ * LOG4SH_COLOR_YELLOW="\e[1;33m"
+ * LOG4SH_COLOR_BLUE="\e[1;34m"
+ * LOG4SH_COLOR_CYAN="\e[1;36m"
+ * LOG4SH_COLOR_OFF="\e[0m"
+
+ * LOG4SH_ERROR_COLOR="$LOG4SH_COLOR_RED"
+ * LOG4SH_FATAL_COLOR="$LOG4SH_COLOR_RED"
+ * LOG4SH_INFO_COLOR="$LOG4SH_COLOR_WHITE"
+ * LOG4SH_SUCCESS_COLOR="$LOG4SH_COLOR_GREEN"
+ * LOG4SH_WARN_COLOR="$LOG4SH_COLOR_YELLOW"
+ * LOG4SH_DEBUG_COLOR="$LOG4SH_COLOR_BLUE"
+ * LOG4SH_TRACE_COLOR="$LOG4SH_COLOR_CYAN"
 
 You can also overwrite them.
 
