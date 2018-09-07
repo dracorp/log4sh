@@ -174,14 +174,14 @@ Does it use colors? There are following default colors:
 
 There are following defined colors:
 
-    * LOG4SH_COLOR_BOLD="\e[1;37m"'
-    * LOG4SH_COLOR_RED="\e[1;31m"'
-    * LOG4SH_COLOR_WHITE="\e[0;37m"'
-    * LOG4SH_COLOR_GREEN="\e[1;32m"'
-    * LOG4SH_COLOR_YELLOW="\e[1;33m"'
-    * LOG4SH_COLOR_BLUE="\e[1;34m"'
-    * LOG4SH_COLOR_CYAN="\e[1;36m"'
-    * LOG4SH_COLOR_OFF="\e[0m"'
+    * LOG4SH_COLOR_BOLD="^[[1;37m"'
+    * LOG4SH_COLOR_RED="^[[1;31m"'
+    * LOG4SH_COLOR_WHITE="^[[0;37m"'
+    * LOG4SH_COLOR_GREEN="^[[1;32m"'
+    * LOG4SH_COLOR_YELLOW="^[[1;33m"'
+    * LOG4SH_COLOR_BLUE="^[[1;34m"'
+    * LOG4SH_COLOR_CYAN="^[[1;36m"'
+    * LOG4SH_COLOR_OFF="^[[0m"'
 
     * LOG4SH_DEFAULT_COLOR="$LOG4SH_COLOR_OFF"'
     * LOG4SH_ERROR_COLOR="$LOG4SH_COLOR_RED"'
