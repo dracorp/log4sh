@@ -2,7 +2,7 @@
 # NAME
 #
 # SYNOPSIS
-#       . log4sh.sh [-l level] [-t 0|1] [-d 0|1] [-c 0|1] [-qhu] [-f file] [-d path to GNU date]
+#       . log4sh.sh [-l level] [-t 0|1] [-T 0|1] [-D 0|1] [-c 0|1] [-f file] [-d path to GNU date] [-qhup]
 #
 # DESCRIPTION
 #       A shell logging library, based on L<log4bats|https://github.com/goozbach/log4bats>.
@@ -51,6 +51,11 @@
 #       INFO "log to file"
 #       echo "write this also to log_file" | tee -a $LOG4SH_FILE
 #
+#       $ . log4sh.sh || exit 1
+#       $ INFO lorem ipsum
+#       2016-11-29-14:07:42 INFO - lorem ipsum
+#       $ log4sh_init other_parameters
+#
 # AUTHOR
 #       Piotr Rogoza <piotr.r.public@gmail.com
 #
@@ -75,6 +80,8 @@ function _log4sh_help {
     printf "\t-q       - be quiet\n"
     printf "\t-u       - show full usage with additional information\n"
     printf "\t-h       - show help\n"
+    printf "\n"
+    printf "%s\n" "To process new parameters, you have to invoke log4sh_init function with new ones"
 }
 
 function _log4sh_show_usage {
@@ -102,12 +109,13 @@ function _log4sh_show_usage {
     printf '%s\n' "There are following control variables (with default options) which can be overwritten in a shell:"
     printf '%s\n' " * LOG4SH_DATE=1 - do print a timestamp?"
     printf '%s\n' " * LOG4SH_DATE_LOG=1 - do print a timestamp in a log file?"
-    printf '%s\n' " * LOG4SH_DATE_FORMAT="+%F-%T" - a format of the timestamp"
+    printf '%s\n' " * LOG4SH_DATE_FORMAT="+%FT%TZ" - a format of the timestamp, ISO8601 standard"
     printf '%s\n' " * LOG4SH_DATE_BIN="" - localization of the GNU date"
-    printf '%s\n' " * LOG4SH_FORMAT="" - a format for the header of each message. It overwrites the default format: timestamp [log level]"
+    printf '%s\n' " * LOG4SH_FORMAT="" - a format for the header of each message. It overwrites the default format: timestamp log-level"
     printf '%s\n' " * LOG4SH_COLOR=1 - do print with colors?"
     printf '%s\n' " * LOG4SH_QUIET=0 - do be quiet?"
-    printf '%s\n' " * LOG4SH_LEVE=INFO - the priority of the log message, logging level. Same as for Log4Perl and Log4J"
+    printf '%s\n' " * LOG4SH_LEVE=INFO - the priority of the log message, logging level. Same as for Log4Perl and Log4j"
+    printf '%s\n' " * LOG4SH_FILE='' - a log file"
     printf '%s\n'
     printf '%s\n' "and variables for colors:"
     printf '%s\n' ' * LOG4SH_COLOR_BOLD="\e[1;37m"'
@@ -129,7 +137,7 @@ function _log4sh_show_usage {
     printf '%s\n' ' * LOG4SH_TRACE_COLOR="$LOG4SH_COLOR_CYAN"'
 }
 
-function _log4sh_parse_positional_parameters {
+function log4sh_init {
     typeset program_options='c:d:f:l:t:T:Dhqpu'
     typeset options retval
     options=$(getopt $program_options $* 2>/dev/null)
@@ -159,33 +167,34 @@ function _log4sh_parse_positional_parameters {
     shift # remove --
 }
 
-_log4sh_parse_positional_parameters "$@"
+log4sh_init "$@"
 if (( $? )); then
-    unset _log4sh_parse_positional_parameters
     return 1
 fi
-unset _log4sh_parse_positional_parameters
 
 # some default values, can be overwritten in shell
 : ${LOG4SH_DATE=1}                            # do print timestamp?
 : ${LOG4SH_DATE_LOG=1}                        # print timestamp only in log file
-: ${LOG4SH_DATE_FORMAT="+%F-%T"}              # format of timestamp
+: ${LOG4SH_DATE_FORMAT="+%FT%TZ"}             # format of timestamp, extended ISO8601
+LOG4SH_DEFAULT_DATE_FORMAT="+%FT%TZ"
 : ${LOG4SH_COLOR=1}                           # do use color?
 : ${LOG4SH_QUIET=0}                           # be quiet
 : ${LOG4SH_LEVEL=INFO}                        # default log level
 : ${LOG4SH_FORMAT=''}                         # instead it is used timestamp and loglevel
+LOG4SH_DEFAULT_FORMAT='${_log_date}${_LOG_LVL} - '
+LOG4SH_DEFAULT_SHORT_FORMAT='${_LOG_LVL} - '
 : ${LOG4SH_DATE_BIN=''}                       # path to GNU date
 : ${LOG4SH_FILE=''}                           # a log file
 : ${LOG4SH_DEBUG_LOG=0}                       # write DEBUG information to a log file
 
-: ${LOG4SH_COLOR_BOLD="\e[1;37m"}
-: ${LOG4SH_COLOR_RED="\e[1;31m"}
-: ${LOG4SH_COLOR_WHITE="\e[0;37m"}
-: ${LOG4SH_COLOR_GREEN="\e[1;32m"}
-: ${LOG4SH_COLOR_YELLOW="\e[1;33m"}
-: ${LOG4SH_COLOR_BLUE="\e[1;34m"}
-: ${LOG4SH_COLOR_CYAN="\e[1;36m"}
-: ${LOG4SH_COLOR_OFF="\e[0m"}
+: ${LOG4SH_COLOR_BOLD="[1;37m"}
+: ${LOG4SH_COLOR_RED="[1;31m"}
+: ${LOG4SH_COLOR_WHITE="[0;37m"}
+: ${LOG4SH_COLOR_GREEN="[1;32m"}
+: ${LOG4SH_COLOR_YELLOW="[1;33m"}
+: ${LOG4SH_COLOR_BLUE="[1;34m"}
+: ${LOG4SH_COLOR_CYAN="[1;36m"}
+: ${LOG4SH_COLOR_OFF="[0m"}
 
 : ${LOG4SH_DEFAULT_COLOR="$LOG4SH_COLOR_OFF"}
 : ${LOG4SH_ERROR_COLOR="$LOG4SH_COLOR_RED"}
@@ -281,7 +290,7 @@ _log4sh_do_dispatch(){
     typeset message="$@"
     typeset _log_date
     if [ -n "$LOG4SH_DATE" ] && (( LOG4SH_DATE )); then
-        _log_date=$(_log4sh_date -u ${LOG4SH_DATE_FORMAT:-"+%F-%T"} -d @${_LOG_STAMP:-$(_log4sh_date +%s.%N)})
+        _log_date=$(_log4sh_date -u ${LOG4SH_DATE_FORMAT:-$LOG4SH_DEFAULT_DATE_FORMAT} -d @${_LOG_STAMP:-$(_log4sh_date +%s.%N)})
         _log_date="$_log_date "
     else
         _log_date=
@@ -291,25 +300,25 @@ _log4sh_do_dispatch(){
     fi
     # Write DEBUG message to log file but only when:
     if [[ "$_LOG_LVL" = 'DEBUG' && $LOG4SH_LEVEL = $(INFO|WARN|ERROR|FATAL) && -n "$LOG4SH_FILE" ]] && (( LOG4SH_DEBUG_LOG )); then
-        printf "%s\n" "${LOG4SH_FORMAT:-${_log_date}${_LOG_LVL} - }${message}" >> $LOG4SH_FILE
+        printf "%s\n" "${LOG4SH_FORMAT:-$(eval printf '%b' \"${LOG4SH_DEFAULT_FORMAT}\")}${message}" >> $LOG4SH_FILE
     else
         # Without logfile
         if [ -z "$LOG4SH_FILE" ]; then
             if (( ! LOG4SH_QUIET )); then
-                printf "%b\n" "${LOG4SH_COLOR_BEGIN}${LOG4SH_FORMAT:-${_log_date}${_LOG_LVL} - }${message}${LOG4SH_COLOR_OFF}"
+                printf "%b\n" "${LOG4SH_COLOR_BEGIN}${LOG4SH_FORMAT:-$(eval printf '%s' \"${LOG4SH_DEFAULT_FORMAT}\")}${message}${LOG4SH_COLOR_OFF}"
             fi
         # With logfile
         elif [ -n "$LOG4SH_FILE" ]; then
             if (( ! LOG4SH_QUIET )); then
                 # print to stdout
                 if (( LOG4SH_DATE_LOG )) && (( LOG4SH_DATE )); then
-                    printf "%b\n" "${LOG4SH_COLOR_BEGIN}${LOG4SH_FORMAT:-${_LOG_LVL} - }${message}${LOG4SH_COLOR_OFF}"
+                    printf "%b\n" "${LOG4SH_COLOR_BEGIN}${LOG4SH_FORMAT:-$(eval printf '%b' \"${LOG4SH_DEFAULT_SHORT_FORMAT}\")}${message}${LOG4SH_COLOR_OFF}"
                 else
-                    printf "%b\n" "${LOG4SH_COLOR_BEGIN}${LOG4SH_FORMAT:-${_log_date_}${_LOG_LVL} - }${message}${LOG4SH_COLOR_OFF}"
+                    printf "%b\n" "${LOG4SH_COLOR_BEGIN}${LOG4SH_FORMAT:-$(eval printf '%b' \"${LOG4SH_DEFAULT_FORMAT}\")}${message}${LOG4SH_COLOR_OFF}"
                 fi
             fi
             # print to file
-            printf "%s\n" "${LOG4SH_FORMAT:-${_log_date}${_LOG_LVL} - }${message}" >> $LOG4SH_FILE
+            printf "%s\n" "${LOG4SH_FORMAT:-$(eval echo \"${LOG4SH_DEFAULT_FORMAT}\")}${message}" >> $LOG4SH_FILE
         fi
     fi
 }
@@ -359,7 +368,7 @@ _log4sh_level(){
 #     typeset _log_date
     typeset _log_message="$@"
 #     if [ -n "$LOG4SH_DATE" ] && (( LOG4SH_DATE )); then
-#         _log_date=$(_log4sh_date -u ${LOG4SH_DATE_FORMAT:-"+%F-%T"} -d @${_LOG_STAMP:-$(_log4sh_date +%s.%N)})
+#         _log_date=$(_log4sh_date -u ${LOG4SH_DATE_FORMAT:-$LOG4SH_DEFAULT_DATE_FORMAT} -d @${_LOG_STAMP:-$(_log4sh_date +%s.%N)})
 #         _log_date="$_log_date "
 #     else
 #         _log_date=''

@@ -2,11 +2,11 @@
 
 =head1 NAME
 
-log4sh.sh - A sh logging library, based on L<log4bats|https://github.com/goozbach/log4bats>.
+log4sh.sh - A shell logging library, based on L<log4bats|https://github.com/goozbach/log4bats>.
 
 =head1 USAGE
 
-    . log4sh.sh [-l level] [-t 0|1] [-d 0|1] [-c 0|1] [-qh] [-f file] [-b path to GNU date]
+    . log4sh.sh [-l level] [-t 0|1] [-T 0|1] [-D 0|1] [-c 0|1] [-f file] [-d path to GNU date] [-qhup]
 
 =head1 OPTIONS
 
@@ -14,7 +14,27 @@ log4sh.sh - A sh logging library, based on L<log4bats|https://github.com/goozbac
 
 =item -l level
 
-The priority of the log message, logging level.
+The priority of the log message, logging level:
+
+=over
+
+=item ALL -- synonym for TRACE
+
+=item TRACE
+
+=item DEBUG
+
+=item INFO
+
+=item WARN
+
+=item ERROR
+
+=item FATAL
+
+=item NONE -- no logging
+
+=back
 
 =item -t 0|1
 
@@ -32,10 +52,6 @@ Write DEBUG information to logfile
 
 Switch on/off colors.
 
-=item -q
-
-Be quiet.
-
 =item -f file
 
 The path to the log file.
@@ -46,7 +62,19 @@ The path to the GNU date if different from I</opt/freeware/bin/date> or there is
 
 =item -p
 
-Use in-built Perl script which replace GNU date. It works more slower.
+Use Perl code which replace GNU date. It works more slower.
+
+=item -q
+
+Be quiet.
+
+=item -u
+
+Show additional information about usage.
+
+=item -h
+
+Show short help.
 
 =back
 
@@ -80,13 +108,13 @@ There are following functions:
 
 =item log_die, DIE
 
-As log_fatal, but it also exits from shell.
+Like the log_fatal, but it also exits with code 200.
 
 =item log_error, ERROR
 
 =item LOGEXIT
 
-As log_die or DIE, but it exits or returns from a function.
+Like the log_die or DIE, but it exits with 1 code.
 
 =item log_warn, WARN
 
@@ -95,6 +123,12 @@ As log_die or DIE, but it exits or returns from a function.
 =item log_debug, DEBUG
 
 =item log_trace, TRACE
+
+=item log4sh_init
+
+Initialize log4sh control variables. For example:
+
+    log4sh_init -t 0 -c 0
 
 =back
 
@@ -124,7 +158,7 @@ The library checks: path /opt/freeware/bin/date for existing  and date for defau
 
 =item LOG4SH_FORMAT=''
 
-A format for the header of each message. It could overwrite the default format: 'timestamp [log level]'
+A format for the header of each message. It could overwrite the default format: 'timestamp log-level'
 
 =item LOG4SH_COLOR=1
 
@@ -140,14 +174,23 @@ Does it use colors? There are following default colors:
 
 There are following defined colors:
 
-    * LOG4SH_DEFAULT_COLOR
-    * LOG4SH_ERROR_COLOR
-    * LOG4SH_FATAL_COLOR
-    * LOG4SH_INFO_COLOR
-    * LOG4SH_SUCCESS_COLOR
-    * LOG4SH_WARN_COLOR
-    * LOG4SH_DEBUG_COLOR
-    * LOG4SH_TRACE_COLOR
+    * LOG4SH_COLOR_BOLD="\e[1;37m"'
+    * LOG4SH_COLOR_RED="\e[1;31m"'
+    * LOG4SH_COLOR_WHITE="\e[0;37m"'
+    * LOG4SH_COLOR_GREEN="\e[1;32m"'
+    * LOG4SH_COLOR_YELLOW="\e[1;33m"'
+    * LOG4SH_COLOR_BLUE="\e[1;34m"'
+    * LOG4SH_COLOR_CYAN="\e[1;36m"'
+    * LOG4SH_COLOR_OFF="\e[0m"'
+
+    * LOG4SH_DEFAULT_COLOR="$LOG4SH_COLOR_OFF"'
+    * LOG4SH_ERROR_COLOR="$LOG4SH_COLOR_RED"'
+    * LOG4SH_FATAL_COLOR="$LOG4SH_COLOR_RED"'
+    * LOG4SH_INFO_COLOR="$LOG4SH_COLOR_WHITE"'
+    * LOG4SH_SUCCESS_COLOR="$LOG4SH_COLOR_GREEN"'
+    * LOG4SH_WARN_COLOR="$LOG4SH_COLOR_YELLOW"'
+    * LOG4SH_DEBUG_COLOR="$LOG4SH_COLOR_BLUE"'
+    * LOG4SH_TRACE_COLOR="$LOG4SH_COLOR_CYAN"'
 
 You can also overwrite them.
 

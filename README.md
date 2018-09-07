@@ -43,6 +43,8 @@ pod2man and pod2text belong to Perl
     -h
     show help
 
+To process new parameters, you have to invoke log4sh_init function with new ones.
+
 See also [CONTROL VARIABLES](#control-variables). For incorrect option it returns 1.
 
 ## EXAMPLES
@@ -80,6 +82,7 @@ There are following functions:
 * log_info, INFO
 * log_debug, DEBUG
 * log_trace, TRACE
+* log4sh_init - initialize log4sh control variables
 
 ## CONTROL VARIABLES
 
@@ -164,7 +167,7 @@ Eeach level includes the one below. Ie. **WARN** will print **WARN**, **ERROR**,
 
 ## Todo
 
-* [ ] create initialize function like for Log::Log4perl
+* [x] create initialize function like for Log::Log4perl
 * [x] replace \_log4sh_date function with something better
 * [ ] replace global variables with local
 
