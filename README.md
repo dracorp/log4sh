@@ -1,7 +1,7 @@
 log4sh
 ======
 
-A sh logging library, based on [log4bats](https://github.com/goozbach/log4bats).
+A shell logging library, based on [log4bats](https://github.com/goozbach/log4bats).
 
 ## Install
 
@@ -96,7 +96,7 @@ Date/timestamp before each message ( to STDOUT and a log file )
 
     Print date/timestamp only to a log file
 
-* LOG4SH_DATE_FORMAT="+%F-%T"
+* LOG4SH_DATE_FORMAT="+%FT%TZ"
 
     Default format for a timestamp. Same as format for [date(1)](date(1)).
 
@@ -123,14 +123,14 @@ Date/timestamp before each message ( to STDOUT and a log file )
 
 There are following defined colors:
 
- * LOG4SH_COLOR_BOLD="\e[1;37m"
- * LOG4SH_COLOR_RED="\e[1;31m"
- * LOG4SH_COLOR_WHITE="\e[1;37m"
- * LOG4SH_COLOR_GREEN="\e[1;32m"
- * LOG4SH_COLOR_YELLOW="\e[1;33m"
- * LOG4SH_COLOR_BLUE="\e[1;34m"
- * LOG4SH_COLOR_CYAN="\e[1;36m"
- * LOG4SH_COLOR_OFF="\e[0m"
+ * LOG4SH_COLOR_BOLD="^[[1;37m"
+ * LOG4SH_COLOR_RED="^[[1;31m"
+ * LOG4SH_COLOR_WHITE="^[[1;37m"
+ * LOG4SH_COLOR_GREEN="^[[1;32m"
+ * LOG4SH_COLOR_YELLOW="^[[1;33m"
+ * LOG4SH_COLOR_BLUE="^[[1;34m"
+ * LOG4SH_COLOR_CYAN="^[[1;36m"
+ * LOG4SH_COLOR_OFF="^[[0m"
 
  * LOG4SH_ERROR_COLOR="$LOG4SH_COLOR_RED"
  * LOG4SH_FATAL_COLOR="$LOG4SH_COLOR_RED"
