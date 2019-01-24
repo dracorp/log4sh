@@ -9,8 +9,8 @@
 #
 # OPTIONS
 #       -l level    - ALL(TRACE), DEBUG, INFO, WARN, ERROR, FATAL, NONE
-#       -t [01]     - date/timestamp preceded a message
-#       -T [01]     - date/timestamp only in a log file (enabled only global date/timestamp is enabled)
+#       -t [01]     - date/timestamp precede a message
+#       -T [01]     - date/timestamp only in a log file (enabled only global if option -t is enabled)
 #       -D [01]     - write DEBUG information to logfile
 #       -c [01]     - use color
 #       -f file     - a log file
@@ -61,11 +61,11 @@
 #
 #===============================================================================
 
-function _log4sh_usage {
+_log4sh_usage() {
     printf "Usage:\n\t. log4sh.sh [-l level] [-t 0|1] [-T 0|1] [-c 0|1] [-qhD] [-f file] [-d path to GNU date]\n\n"
 }
 
-function _log4sh_help {
+_log4sh_help() {
     _log4sh_usage
     printf "\t-l level - a log level\n"
     printf "\t-t 0|1   - switch on/off data/timestamp\n"
@@ -84,7 +84,7 @@ function _log4sh_help {
     printf "%s\n" "To process new parameters, you have to invoke log4sh_init function with new ones"
 }
 
-function _log4sh_show_usage {
+_log4sh_show_usage() {
     _log4sh_help
     printf '\n'
     printf '%s\n' "Each level includes the one below. (ie WARN will print WARN, ERROR, and FATAL messages)"
@@ -137,7 +137,7 @@ function _log4sh_show_usage {
     printf '%s\n' ' * LOG4SH_TRACE_COLOR="$LOG4SH_COLOR_CYAN"'
 }
 
-function log4sh_init {
+log4sh_init() {
     typeset program_options='c:d:f:l:t:T:Dhqpu'
     typeset options retval
     options=$(getopt $program_options $* 2>/dev/null)
@@ -165,47 +165,52 @@ function log4sh_init {
         shift
     done
     shift # remove --
+    _log4sh_set_variables
 }
 
-log4sh_init "$@"
-if (( $? )); then
-    return 1
-fi
+_log4sh_set_variables() {
+    # some default variables' values, can be overwritten in shell
+    : ${LOG4SH_DATE=1}                            # do print timestamp?
+    : ${LOG4SH_DATE_LOG=1}                        # print timestamp only in log file
+    : ${LOG4SH_DATE_FORMAT="+%FT%TZ"}             # format of timestamp, extended ISO8601
+    LOG4SH_DEFAULT_DATE_FORMAT="+%FT%TZ"
+    : ${LOG4SH_COLOR=1}                           # do use color?
+    : ${LOG4SH_QUIET=0}                           # be quiet
+    : ${LOG4SH_LEVEL=INFO}                        # default log level
+    : ${LOG4SH_FORMAT=''}                         # instead it is used timestamp and loglevel
+    LOG4SH_DEFAULT_FORMAT='${_log_date}${_LOG_LVL} - '
+    LOG4SH_DEFAULT_SHORT_FORMAT='${_LOG_LVL} - '
+    : ${LOG4SH_DATE_BIN=''}                       # path to GNU date
+    : ${LOG4SH_FILE=''}                           # a log file
+    : ${LOG4SH_DEBUG_LOG=0}                       # write DEBUG information to a log file
 
-# some default values, can be overwritten in shell
-: ${LOG4SH_DATE=1}                            # do print timestamp?
-: ${LOG4SH_DATE_LOG=1}                        # print timestamp only in log file
-: ${LOG4SH_DATE_FORMAT="+%FT%TZ"}             # format of timestamp, extended ISO8601
-LOG4SH_DEFAULT_DATE_FORMAT="+%FT%TZ"
-: ${LOG4SH_COLOR=1}                           # do use color?
-: ${LOG4SH_QUIET=0}                           # be quiet
-: ${LOG4SH_LEVEL=INFO}                        # default log level
-: ${LOG4SH_FORMAT=''}                         # instead it is used timestamp and loglevel
-LOG4SH_DEFAULT_FORMAT='${_log_date}${_LOG_LVL} - '
-LOG4SH_DEFAULT_SHORT_FORMAT='${_LOG_LVL} - '
-: ${LOG4SH_DATE_BIN=''}                       # path to GNU date
-: ${LOG4SH_FILE=''}                           # a log file
-: ${LOG4SH_DEBUG_LOG=0}                       # write DEBUG information to a log file
+    : ${LOG4SH_COLOR_BOLD="[1;37m"}
+    : ${LOG4SH_COLOR_RED="[1;31m"}
+    : ${LOG4SH_COLOR_WHITE="[0;37m"}
+    : ${LOG4SH_COLOR_GREEN="[1;32m"}
+    : ${LOG4SH_COLOR_YELLOW="[1;33m"}
+    : ${LOG4SH_COLOR_BLUE="[1;34m"}
+    : ${LOG4SH_COLOR_CYAN="[1;36m"}
+    : ${LOG4SH_COLOR_OFF="[0m"}
 
-: ${LOG4SH_COLOR_BOLD="[1;37m"}
-: ${LOG4SH_COLOR_RED="[1;31m"}
-: ${LOG4SH_COLOR_WHITE="[0;37m"}
-: ${LOG4SH_COLOR_GREEN="[1;32m"}
-: ${LOG4SH_COLOR_YELLOW="[1;33m"}
-: ${LOG4SH_COLOR_BLUE="[1;34m"}
-: ${LOG4SH_COLOR_CYAN="[1;36m"}
-: ${LOG4SH_COLOR_OFF="[0m"}
+    : ${LOG4SH_DEFAULT_COLOR="$LOG4SH_COLOR_OFF"}
+    : ${LOG4SH_ERROR_COLOR="$LOG4SH_COLOR_RED"}
+    : ${LOG4SH_FATAL_COLOR="$LOG4SH_COLOR_RED"}
+    : ${LOG4SH_INFO_COLOR="$LOG4SH_COLOR_WHITE"}
+    : ${LOG4SH_SUCCESS_COLOR="$LOG4SH_COLOR_GREEN"}
+    : ${LOG4SH_WARN_COLOR="$LOG4SH_COLOR_YELLOW"}
+    : ${LOG4SH_DEBUG_COLOR="$LOG4SH_COLOR_BLUE"}
+    : ${LOG4SH_TRACE_COLOR="$LOG4SH_COLOR_CYAN"}
 
-: ${LOG4SH_DEFAULT_COLOR="$LOG4SH_COLOR_OFF"}
-: ${LOG4SH_ERROR_COLOR="$LOG4SH_COLOR_RED"}
-: ${LOG4SH_FATAL_COLOR="$LOG4SH_COLOR_RED"}
-: ${LOG4SH_INFO_COLOR="$LOG4SH_COLOR_WHITE"}
-: ${LOG4SH_SUCCESS_COLOR="$LOG4SH_COLOR_GREEN"}
-: ${LOG4SH_WARN_COLOR="$LOG4SH_COLOR_YELLOW"}
-: ${LOG4SH_DEBUG_COLOR="$LOG4SH_COLOR_BLUE"}
-: ${LOG4SH_TRACE_COLOR="$LOG4SH_COLOR_CYAN"}
+    : ${LOG4SH_COLOR_BEGIN=$LOG4SH_DEFAULT_COLOR}
 
-: ${LOG4SH_COLOR_BEGIN=$LOG4SH_DEFAULT_COLOR}
+    if [ -n "$LOG4SH_FILE" ]; then
+        typeset log_dir=$(dirname "$LOG4SH_FILE")
+        if [ ! -d "$log_dir" ]; then
+            mkdir -p "$log_dir" || return 1
+        fi
+    fi
+}
 
 if [[ -n "$LOG4SH_DATE_BIN" && $LOG4SH_DATE_BIN == 'perl' ]]; then
     _log4sh_date() {
@@ -479,4 +484,9 @@ log_trace() {
 TRACE() {
     log_trace "$@"
 }
+
+log4sh_init "$@"
+if (( $? )); then
+    return 1
+fi
 
