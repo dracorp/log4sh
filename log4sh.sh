@@ -61,6 +61,10 @@
 #
 #===============================================================================
 
+if ! type local 2>&1 1>/dev/null; then
+    alias local=typeset
+fi
+
 _log4sh_usage() {
     printf "Usage:\n\t. log4sh.sh [-l level] [-t 0|1] [-T 0|1] [-c 0|1] [-qhD] [-f file] [-d path to GNU date]\n\n"
 }
@@ -138,8 +142,8 @@ _log4sh_show_usage() {
 }
 
 log4sh_init() {
-    typeset program_options='c:d:f:l:t:T:Dhqpu'
-    typeset options retval
+    local program_options='c:d:f:l:t:T:Dhqpu'
+    local options retval
     options=$(getopt $program_options $* 2>/dev/null)
     retval=$?
     if (( retval )); then
@@ -165,10 +169,10 @@ log4sh_init() {
         shift
     done
     shift # remove --
-    _log4sh_set_variables
+#     _log4sh_init_variables
 }
 
-_log4sh_set_variables() {
+_log4sh_init_variables() {
     # some default variables' values, can be overwritten in shell
     : ${LOG4SH_DATE=1}                            # do print timestamp?
     : ${LOG4SH_DATE_LOG=1}                        # print timestamp only in log file
@@ -205,95 +209,95 @@ _log4sh_set_variables() {
     : ${LOG4SH_COLOR_BEGIN=$LOG4SH_DEFAULT_COLOR}
 
     if [ -n "$LOG4SH_FILE" ]; then
-        typeset log_dir=$(dirname "$LOG4SH_FILE")
+        local log_dir=$(dirname "$LOG4SH_FILE")
         if [ ! -d "$log_dir" ]; then
             mkdir -p "$log_dir" || return 1
         fi
     fi
-}
 
-if [[ -n "$LOG4SH_DATE_BIN" && $LOG4SH_DATE_BIN == 'perl' ]]; then
-    _log4sh_date() {
-       typeset script=$(cat <<'EOF'
-use POSIX qw(strftime);
-use Time::HiRes qw(time);
-use English qw( -no_match_vars );
+    if [[ -n "$LOG4SH_DATE_BIN" && $LOG4SH_DATE_BIN == 'perl' ]]; then
+        _log4sh_date() {
+            local script=$(cat <<-'EOF'
+                use POSIX qw(strftime);
+                use Time::HiRes qw(time);
+                use English qw( -no_match_vars );
 
-sub parseCommandLineOptions {
-    my ( $option ) = @ARG;
-    for my $index (0 .. $#ARGV) {
-        if ($ARGV[$index] eq q{-u}) {
-            $option->{utc} = 1;
-        }
-        elsif ($ARGV[$index] =~ /\+%/) {
-            ( $option->{format} ) = $ARGV[$index] =~ m/\+(.*)/;
-        }
-        elsif ($ARGV[$index] =~ /%/ && $ARGV[$index] !~ /\+/) {
-            print qq{date: invalid date $ARGV[$index]\n};
-            exit 1;
-        }
-        elsif ( $ARGV[$index] =~ /^-d[^ ]+/ ) {
-            ( $option->{date} ) = $ARGV[$index] =~ m/-d@?(.*)/;
-        }
-        elsif ( $ARGV[$index] =~ /^-d$/ ) {
-            ( $option->{date} ) = $ARGV[$index+1] =~ m/@?(.*)/;
-        }
-    }
-}
-my $option = {
-    format => q{%a %b %e %H:%M:%S %Z %Y},
-};
-parseCommandLineOptions($option);
-my $time;
-if ( $option->{date} ) {
-    $time = $option->{date};
-}
-else {
-    if ( $option->{utc} ) {
-        $time = sprintf q{%.9f}, gmtime();
-    }
-    else {
-        $time = sprintf q{%.9f}, time();
-    }
-}
-my ( $nsec ) = $time =~ m/\.(.*)/;
-my @time = localtime $time;
-my $nsecFlag;
-if ( $option->{format} =~ m/%N$/ ) {
-    $option->{format} =~ s/%N//;
-    $nsecFlag = 1;
-}
-my $formatedTime = strftime qq{$option->{format}}, @time;
-if ( $nsecFlag ) {
-    $formatedTime .= $nsec;
-}
-print $formatedTime, qq{\n};
+                sub parseCommandLineOptions {
+                    my ( $option ) = @ARG;
+                    for my $index (0 .. $#ARGV) {
+                        if ($ARGV[$index] eq q{-u}) {
+                            $option->{utc} = 1;
+                        }
+                        elsif ($ARGV[$index] =~ /\+%/) {
+                            ( $option->{format} ) = $ARGV[$index] =~ m/\+(.*)/;
+                        }
+                        elsif ($ARGV[$index] =~ /%/ && $ARGV[$index] !~ /\+/) {
+                            print qq{date: invalid date $ARGV[$index]\n};
+                            exit 1;
+                        }
+                        elsif ( $ARGV[$index] =~ /^-d[^ ]+/ ) {
+                            ( $option->{date} ) = $ARGV[$index] =~ m/-d@?(.*)/;
+                        }
+                        elsif ( $ARGV[$index] =~ /^-d$/ ) {
+                            ( $option->{date} ) = $ARGV[$index+1] =~ m/@?(.*)/;
+                        }
+                    }
+                }
+                my $option = {
+                    format => q{%a %b %e %H:%M:%S %Z %Y},
+                };
+                parseCommandLineOptions($option);
+                my $time;
+                if ( $option->{date} ) {
+                    $time = $option->{date};
+                }
+                else {
+                    if ( $option->{utc} ) {
+                        $time = sprintf q{%.9f}, gmtime();
+                    }
+                    else {
+                        $time = sprintf q{%.9f}, time();
+                    }
+                }
+                my ( $nsec ) = $time =~ m/\.(.*)/;
+                my @time = localtime $time;
+                my $nsecFlag;
+                if ( $option->{format} =~ m/%N$/ ) {
+                    $option->{format} =~ s/%N//;
+                    $nsecFlag = 1;
+                }
+                my $formatedTime = strftime qq{$option->{format}}, @time;
+                if ( $nsecFlag ) {
+                    $formatedTime .= $nsec;
+                }
+                print $formatedTime, qq{\n};
 EOF
-        )
-        perl -e "$script" -- "$@"
-    }
-# overwrite default date of AIX
-elif [ -x /opt/freeware/bin/date ]; then
-    _log4sh_date() {
-        /opt/freeware/bin/date "$@"
-    }
-# GNU date
-elif date --version >/dev/null 2>&1; then
-    _log4sh_date() {
-        date "$@"
-    }
-elif [[ -n "$LOG4SH_DATE_BIN" && -x $LOG4SH_DATE_BIN ]]; then
-    _log4sh_date() {
-        $LOG4SH_DATE_BIN "$@"
-    }
-else
-    printf "FATAL - Missing GNU date. I cannot use AIX or other date.\n"
-    return
-fi
+            )
+            perl -e "$script" -- "$@"
+        }
+    # overwrite default date of AIX
+    elif [ -x /opt/freeware/bin/date ]; then
+        _log4sh_date() {
+            /opt/freeware/bin/date "$@"
+        }
+    # GNU date
+    elif date --version >/dev/null 2>&1; then
+        _log4sh_date() {
+            date "$@"
+        }
+    elif [[ -n "$LOG4SH_DATE_BIN" && -x $LOG4SH_DATE_BIN ]]; then
+        _log4sh_date() {
+            $LOG4SH_DATE_BIN "$@"
+        }
+    else
+        printf "FATAL - Missing GNU date. I cannot use AIX or other date.\n"
+        return
+    fi
+}
 
 _log4sh_do_dispatch(){
-    typeset message="$@"
-    typeset _log_date
+    local message="$@"
+    local _log_date
     if [ -n "$LOG4SH_DATE" ] && (( LOG4SH_DATE )); then
         _log_date=$(_log4sh_date -u ${LOG4SH_DATE_FORMAT:-$LOG4SH_DEFAULT_DATE_FORMAT} -d @${_LOG_STAMP:-$(_log4sh_date +%s.%N)})
         _log_date="$_log_date "
@@ -304,7 +308,7 @@ _log4sh_do_dispatch(){
         LOG4SH_FORMAT="$LOG4SH_FORMAT "
     fi
     # Write DEBUG message to log file but only when:
-    if [[ "$_LOG_LVL" = 'DEBUG' && $LOG4SH_LEVEL = $(INFO|WARN|ERROR|FATAL) && -n "$LOG4SH_FILE" ]] && (( LOG4SH_DEBUG_LOG )); then
+    if [[ "$_LOG_LVL" = 'DEBUG' && $LOG4SH_LEVEL = @(INFO|WARN|ERROR|FATAL) && -n "$LOG4SH_FILE" ]] && (( LOG4SH_DEBUG_LOG )); then
         printf "%s\n" "${LOG4SH_FORMAT:-$(eval printf '%b' \"${LOG4SH_DEFAULT_FORMAT}\")}${message}" >> $LOG4SH_FILE
     else
         # Without logfile
@@ -330,7 +334,7 @@ _log4sh_do_dispatch(){
 
 _log4sh_dispatch(){
     # only continues if the loglevel isn't squelching the log
-    typeset _log_message="$@"
+    local _log_message="$@"
 
     LOG4SH_LEVEL=${LOG4SH_LEVEL:-'TRACE'}
     (( LOG4SH_COLOR )) && LOG4SH_COLOR_OFF=$LOG4SH_DEFAULT_COLOR
@@ -370,8 +374,8 @@ _log4sh(){
 }
 
 _log4sh_level(){
-#     typeset _log_date
-    typeset _log_message="$@"
+#     local _log_date
+    local _log_message="$@"
 #     if [ -n "$LOG4SH_DATE" ] && (( LOG4SH_DATE )); then
 #         _log_date=$(_log4sh_date -u ${LOG4SH_DATE_FORMAT:-$LOG4SH_DEFAULT_DATE_FORMAT} -d @${_LOG_STAMP:-$(_log4sh_date +%s.%N)})
 #         _log_date="$_log_date "
@@ -388,12 +392,12 @@ _log4sh_level(){
 
 log_fatal(){
     (( LOG4SH_COLOR )) && LOG4SH_COLOR_BEGIN=$LOG4SH_FATAL_COLOR || LOG4SH_COLOR_BEGIN=''
-    typeset _LOG_LVL="FATAL"
-    typeset _LOG_FUNC=${FUNCNAME[1]}
-    typeset _LOG_FILE=${0}
-    typeset _LOG_LINE=${LINENO}
-    typeset _LOG_SECONDS=${SECONDS}
-    typeset _LOG_STAMP=$(_log4sh_date +%s.%N)
+    local _LOG_LVL="FATAL"
+    local _LOG_FUNC=${FUNCNAME[1]}
+    local _LOG_FILE=${0}
+    local _LOG_LINE=${LINENO}
+    local _LOG_SECONDS=${SECONDS}
+    local _LOG_STAMP=$(_log4sh_date +%s.%N)
     _log4sh_level "$@"
 }
 FATAL() {
@@ -410,12 +414,12 @@ DIE() {
 
 log_error(){
     (( LOG4SH_COLOR )) && LOG4SH_COLOR_BEGIN=$LOG4SH_ERROR_COLOR || LOG4SH_COLOR_BEGIN=''
-    typeset _LOG_LVL="ERROR"
-    typeset _LOG_FUNC=${FUNCNAME[1]}
-    typeset _LOG_FILE=${0}
-    typeset _LOG_LINE=${LINENO}
-    typeset _LOG_SECONDS=${SECONDS}
-    typeset _LOG_STAMP=$(_log4sh_date +%s.%N)
+    local _LOG_LVL="ERROR"
+    local _LOG_FUNC=${FUNCNAME[1]}
+    local _LOG_FILE=${0}
+    local _LOG_LINE=${LINENO}
+    local _LOG_SECONDS=${SECONDS}
+    local _LOG_STAMP=$(_log4sh_date +%s.%N)
     _log4sh_level "$@"
 }
 ERROR() {
@@ -428,12 +432,12 @@ LOGEXIT() { #{{{
 } #}}}
 log_warn(){
     (( LOG4SH_COLOR )) && LOG4SH_COLOR_BEGIN=$LOG4SH_WARN_COLOR || LOG4SH_COLOR_BEGIN=''
-    typeset _LOG_LVL="WARN"
-    typeset _LOG_FUNC=${FUNCNAME[1]}
-    typeset _LOG_FILE=${0}
-    typeset _LOG_LINE=${LINENO}
-    typeset _LOG_SECONDS=${SECONDS}
-    typeset _LOG_STAMP=$(_log4sh_date +%s.%N)
+    local _LOG_LVL="WARN"
+    local _LOG_FUNC=${FUNCNAME[1]}
+    local _LOG_FILE=${0}
+    local _LOG_LINE=${LINENO}
+    local _LOG_SECONDS=${SECONDS}
+    local _LOG_STAMP=$(_log4sh_date +%s.%N)
     _log4sh_level "$@"
 }
 WARN() {
@@ -442,12 +446,12 @@ WARN() {
 
 log_info(){
     (( LOG4SH_COLOR )) && LOG4SH_COLOR_BEGIN=$LOG4SH_INFO_COLOR || LOG4SH_COLOR_BEGIN=''
-    typeset _LOG_LVL="INFO"
-    typeset _LOG_FUNC=${FUNCNAME[1]}
-    typeset _LOG_FILE=${0}
-    typeset _LOG_LINE=${LINENO}
-    typeset _LOG_SECONDS=${SECONDS}
-    typeset _LOG_STAMP=$(_log4sh_date +%s.%N)
+    local _LOG_LVL="INFO"
+    local _LOG_FUNC=${FUNCNAME[1]}
+    local _LOG_FILE=${0}
+    local _LOG_LINE=${LINENO}
+    local _LOG_SECONDS=${SECONDS}
+    local _LOG_STAMP=$(_log4sh_date +%s.%N)
     _log4sh_level "$@"
 }
 log(){
@@ -459,12 +463,12 @@ INFO() {
 
 log_debug(){
     (( LOG4SH_COLOR )) && LOG4SH_COLOR_BEGIN=$LOG4SH_DEBUG_COLOR || LOG4SH_COLOR_BEGIN=''
-    typeset _LOG_LVL="DEBUG"
-    typeset _LOG_FUNC=${FUNCNAME[1]}
-    typeset _LOG_FILE=${0}
-    typeset _LOG_LINE=${LINENO}
-    typeset _LOG_SECONDS=${SECONDS}
-    typeset _LOG_STAMP=$(_log4sh_date +%s.%N)
+    local _LOG_LVL="DEBUG"
+    local _LOG_FUNC=${FUNCNAME[1]}
+    local _LOG_FILE=${0}
+    local _LOG_LINE=${LINENO}
+    local _LOG_SECONDS=${SECONDS}
+    local _LOG_STAMP=$(_log4sh_date +%s.%N)
     _log4sh_level "$@"
 }
 DEBUG() {
@@ -473,12 +477,12 @@ DEBUG() {
 
 log_trace() {
     (( LOG4SH_COLOR )) && LOG4SH_COLOR_BEGIN=$LOG4SH_TRACE_COLOR || LOG4SH_COLOR_BEGIN=''
-    typeset _LOG_LVL="TRACE"
-    typeset _LOG_FUNC=${FUNCNAME[1]}
-    typeset _LOG_FILE=${0}
-    typeset _LOG_LINE=${LINENO}                 # doesn't work under Ksh, why?
-    typeset _LOG_SECONDS=${SECONDS}
-    typeset _LOG_STAMP=$(_log4sh_date +%s.%N)
+    local _LOG_LVL="TRACE"
+    local _LOG_FUNC=${FUNCNAME[1]}
+    local _LOG_FILE=${0}
+    local _LOG_LINE=${LINENO}                 # doesn't work under Ksh, why?
+    local _LOG_SECONDS=${SECONDS}
+    local _LOG_STAMP=$(_log4sh_date +%s.%N)
     _log4sh_level "$@"
 }
 TRACE() {
@@ -489,4 +493,6 @@ log4sh_init "$@"
 if (( $? )); then
     return 1
 fi
+
+_log4sh_init_variables
 
