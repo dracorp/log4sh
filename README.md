@@ -45,6 +45,8 @@ pod2man and pod2text belong to Perl
 
 To process new parameters, you have to invoke log4sh_init function with new ones.
 
+To unset all functions you have to invoke log4sh_deinit function.
+
 See also [CONTROL VARIABLES](#control-variables). For incorrect option it returns 1.
 
 ## EXAMPLES
@@ -169,7 +171,7 @@ Eeach level includes the one below. Ie. **WARN** will print **WARN**, **ERROR**,
 
 * [x] create initialize function like for Log::Log4perl
 * [x] replace \_log4sh_date function with something better
-* [ ] replace global variables with local
+* [x] replace global variables with local
 
 ## Positional parameters - deprecated
 

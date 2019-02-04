@@ -141,37 +141,6 @@ _log4sh_show_usage() {
     printf '%s\n' ' * LOG4SH_TRACE_COLOR="$LOG4SH_COLOR_CYAN"'
 }
 
-log4sh_init() {
-    local program_options='c:d:f:l:t:T:Dhqpu'
-    local options retval
-    options=$(getopt $program_options $* 2>/dev/null)
-    retval=$?
-    if (( retval )); then
-        _log4sh_usage
-        return 1
-    fi
-    eval set -- "$options"
-    while [[ "$1" != -- ]]; do
-        case $1 in
-            -c) LOG4SH_COLOR=$2; shift ;;
-            -d) LOG4SH_DATE_BIN=$2; shift ;;
-            -f) LOG4SH_FILE=$2; shift ;;
-            -l) LOG4SH_LEVEL=$2; shift ;;
-            -t) LOG4SH_DATE=$2; shift ;;
-            -T) LOG4SH_DATE_LOG=$2; shift ;;
-            -D) LOG4SH_DEBUG_LOG=1 ;;
-            -h) _log4sh_help; return;;
-            -u) _log4sh_show_usage; return;;
-            -q) LOG4SH_QUIET=1 ;;
-            -p) LOG4SH_DATE_BIN=perl ;;
-            *) _log4sh_usage; return 1 ;;
-        esac
-        shift
-    done
-    shift # remove --
-#     _log4sh_init_variables
-}
-
 _log4sh_init_variables() {
     # some default variables' values, can be overwritten in shell
     : ${LOG4SH_DATE=1}                            # do print timestamp?
@@ -293,6 +262,50 @@ EOF
         printf "FATAL - Missing GNU date. I cannot use AIX or other date.\n"
         return
     fi
+}
+
+log4sh_init() {
+    local program_options='c:d:f:l:t:T:Dhqpu'
+    local options retval
+    options=$(getopt $program_options $* 2>/dev/null)
+    retval=$?
+    if (( retval )); then
+        _log4sh_usage
+        return 1
+    fi
+    eval set -- "$options"
+    while [[ "$1" != -- ]]; do
+        case $1 in
+            -c) LOG4SH_COLOR=$2; shift ;;
+            -d) LOG4SH_DATE_BIN=$2; shift ;;
+            -f) LOG4SH_FILE=$2; shift ;;
+            -l) LOG4SH_LEVEL=$2; shift ;;
+            -t) LOG4SH_DATE=$2; shift ;;
+            -T) LOG4SH_DATE_LOG=$2; shift ;;
+            -D) LOG4SH_DEBUG_LOG=1 ;;
+            -h) _log4sh_help; return;;
+            -u) _log4sh_show_usage; return;;
+            -q) LOG4SH_QUIET=1 ;;
+            -p) LOG4SH_DATE_BIN=perl ;;
+            *) _log4sh_usage; return 1 ;;
+        esac
+        shift
+    done
+    shift # remove --
+
+    _log4sh_init_variables
+}
+
+log4sh_deinit() {
+    local functions=(
+        log_fatal FATAL log_die DIE log_error ERROR LOGEXIT log_warn WARN log_info log INFO log_debug DEBUG log_trace TRACE
+        _log4sh _log4sh_data _log4sh_dispatch _log4sh_do_dispatch _log4sh_level _log4sh_date _log4sh_init_variables
+        _log4sh_help _log4sh_show_usage _log4sh_usage
+        log4sh_deinit log4sh_init
+    )
+    for names in ${functions[*]}; do
+        unset -f $names
+    done
 }
 
 _log4sh_do_dispatch(){
@@ -493,6 +506,4 @@ log4sh_init "$@"
 if (( $? )); then
     return 1
 fi
-
-_log4sh_init_variables
 
