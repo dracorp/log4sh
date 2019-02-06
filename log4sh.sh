@@ -143,7 +143,7 @@ _log4sh_show_usage() {
 
 _log4sh_init_variables() {
     # some default variables' values, can be overwritten in shell
-    : ${LOG4SH_DATE=1}                            # do print timestamp?
+    : ${LOG4SH_DATE=0}                            # do print timestamp?
     : ${LOG4SH_DATE_LOG=1}                        # print timestamp only in log file
     : ${LOG4SH_DATE_FORMAT="+%FT%TZ"}             # format of timestamp, extended ISO8601
     LOG4SH_DEFAULT_DATE_FORMAT="+%FT%TZ"
@@ -303,8 +303,45 @@ log4sh_deinit() {
         _log4sh_help _log4sh_show_usage _log4sh_usage
         log4sh_deinit log4sh_init
     )
+    local variables=(
+        LOG4SH_DATE
+        LOG4SH_DATE_LOG
+        LOG4SH_DATE_FORMAT
+        LOG4SH_DEFAULT_DATE_FORMAT
+        LOG4SH_COLOR
+        LOG4SH_QUIET
+        LOG4SH_LEVEL
+        LOG4SH_FORMAT
+        LOG4SH_DEFAULT_FORMAT
+        LOG4SH_DEFAULT_SHORT_FORMAT
+        LOG4SH_DATE_BIN
+        LOG4SH_FILE
+        LOG4SH_DEBUG_LOG
+        LOG4SH_COLOR_BOLD
+        LOG4SH_COLOR_RED
+        LOG4SH_COLOR_WHITE
+        LOG4SH_COLOR_GREEN
+        LOG4SH_COLOR_YELLOW
+        LOG4SH_COLOR_BLUE
+        LOG4SH_COLOR_CYAN
+        LOG4SH_COLOR_OFF
+        LOG4SH_DEFAULT_COLOR
+        LOG4SH_ERROR_COLOR
+        LOG4SH_FATAL_COLOR
+        LOG4SH_INFO_COLOR
+        LOG4SH_SUCCESS_COLOR
+        LOG4SH_WARN_COLOR
+        LOG4SH_DEBUG_COLOR
+        LOG4SH_TRACE_COLOR
+        LOG4SH_COLOR_BEGIN
+        LOG4SH_
+        LOG4SH_
+    )
     for names in ${functions[*]}; do
         unset -f $names
+    done
+    for names in ${variables[*]}; do
+        unset $names
     done
 }
 
