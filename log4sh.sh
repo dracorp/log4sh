@@ -176,6 +176,7 @@ _log4sh_init_variables() {
     : ${LOG4SH_TRACE_COLOR="$LOG4SH_COLOR_CYAN"}
 
     : ${LOG4SH_COLOR_BEGIN=$LOG4SH_DEFAULT_COLOR}
+    : ${LOG4SH_COLOR_END=$LOG4SH_COLOR_OFF}
 
     if [ -n "$LOG4SH_FILE" ]; then
         local log_dir=$(dirname "$LOG4SH_FILE")
@@ -334,9 +335,9 @@ log4sh_deinit() {
         LOG4SH_DEBUG_COLOR
         LOG4SH_TRACE_COLOR
         LOG4SH_COLOR_BEGIN
-        LOG4SH_
-        LOG4SH_
+        LOG4SH_COLOR_END
     )
+
     for names in ${functions[*]}; do
         unset -f $names
     done
@@ -364,16 +365,16 @@ _log4sh_do_dispatch(){
         # Without logfile
         if [ -z "$LOG4SH_FILE" ]; then
             if (( ! LOG4SH_QUIET )); then
-                printf "%b\n" "${LOG4SH_COLOR_BEGIN}${LOG4SH_FORMAT:-$(eval printf '%s' \"${LOG4SH_DEFAULT_FORMAT}\")}${message}${LOG4SH_COLOR_OFF}"
+                printf "%b\n" "${LOG4SH_COLOR_BEGIN}${LOG4SH_FORMAT:-$(eval printf '%s' \"${LOG4SH_DEFAULT_FORMAT}\")}${message}${LOG4SH_COLOR_END}"
             fi
         # With logfile
         elif [ -n "$LOG4SH_FILE" ]; then
             if (( ! LOG4SH_QUIET )); then
                 # print to stdout
                 if (( LOG4SH_DATE_LOG )) && (( LOG4SH_DATE )); then
-                    printf "%b\n" "${LOG4SH_COLOR_BEGIN}${LOG4SH_FORMAT:-$(eval printf '%b' \"${LOG4SH_DEFAULT_SHORT_FORMAT}\")}${message}${LOG4SH_COLOR_OFF}"
+                    printf "%b\n" "${LOG4SH_COLOR_BEGIN}${LOG4SH_FORMAT:-$(eval printf '%b' \"${LOG4SH_DEFAULT_SHORT_FORMAT}\")}${message}${LOG4SH_COLOR_END}"
                 else
-                    printf "%b\n" "${LOG4SH_COLOR_BEGIN}${LOG4SH_FORMAT:-$(eval printf '%b' \"${LOG4SH_DEFAULT_FORMAT}\")}${message}${LOG4SH_COLOR_OFF}"
+                    printf "%b\n" "${LOG4SH_COLOR_BEGIN}${LOG4SH_FORMAT:-$(eval printf '%b' \"${LOG4SH_DEFAULT_FORMAT}\")}${message}${LOG4SH_COLOR_END}"
                 fi
             fi
             # print to file
@@ -441,7 +442,12 @@ _log4sh_level(){
 }
 
 log_fatal(){
-    (( LOG4SH_COLOR )) && LOG4SH_COLOR_BEGIN=$LOG4SH_FATAL_COLOR || LOG4SH_COLOR_BEGIN=''
+    if (( LOG4SH_COLOR )); then
+        LOG4SH_COLOR_BEGIN=$LOG4SH_FATAL_COLOR
+    else
+        LOG4SH_COLOR_BEGIN=''
+        LOG4SH_COLOR_END=''
+    fi
     local _LOG_LVL="FATAL"
     local _LOG_FUNC=${FUNCNAME[1]}
     local _LOG_FILE=${0}
@@ -463,7 +469,12 @@ DIE() {
 }
 
 log_error(){
-    (( LOG4SH_COLOR )) && LOG4SH_COLOR_BEGIN=$LOG4SH_ERROR_COLOR || LOG4SH_COLOR_BEGIN=''
+    if (( LOG4SH_COLOR )); then
+        LOG4SH_COLOR_BEGIN=$LOG4SH_ERROR_COLOR
+    else
+        LOG4SH_COLOR_BEGIN=''
+        LOG4SH_COLOR_END=''
+    fi
     local _LOG_LVL="ERROR"
     local _LOG_FUNC=${FUNCNAME[1]}
     local _LOG_FILE=${0}
@@ -481,7 +492,12 @@ LOGEXIT() { #{{{
     exit 1
 } #}}}
 log_warn(){
-    (( LOG4SH_COLOR )) && LOG4SH_COLOR_BEGIN=$LOG4SH_WARN_COLOR || LOG4SH_COLOR_BEGIN=''
+    if (( LOG4SH_COLOR )); then
+        LOG4SH_COLOR_BEGIN=$LOG4SH_WARN_COLOR
+    else
+        LOG4SH_COLOR_BEGIN=''
+        LOG4SH_COLOR_END=''
+    fi
     local _LOG_LVL="WARN"
     local _LOG_FUNC=${FUNCNAME[1]}
     local _LOG_FILE=${0}
@@ -495,7 +511,12 @@ WARN() {
 }
 
 log_info(){
-    (( LOG4SH_COLOR )) && LOG4SH_COLOR_BEGIN=$LOG4SH_INFO_COLOR || LOG4SH_COLOR_BEGIN=''
+    if (( LOG4SH_COLOR )); then
+        LOG4SH_COLOR_BEGIN=$LOG4SH_INFO_COLOR
+    else
+        LOG4SH_COLOR_BEGIN=''
+        LOG4SH_COLOR_END=''
+    fi
     local _LOG_LVL="INFO"
     local _LOG_FUNC=${FUNCNAME[1]}
     local _LOG_FILE=${0}
@@ -512,7 +533,12 @@ INFO() {
 }
 
 log_debug(){
-    (( LOG4SH_COLOR )) && LOG4SH_COLOR_BEGIN=$LOG4SH_DEBUG_COLOR || LOG4SH_COLOR_BEGIN=''
+    if (( LOG4SH_COLOR )); then
+        LOG4SH_COLOR_BEGIN=$LOG4SH_DEBUG_COLOR
+    else
+        LOG4SH_COLOR_BEGIN=''
+        LOG4SH_COLOR_END=''
+    fi
     local _LOG_LVL="DEBUG"
     local _LOG_FUNC=${FUNCNAME[1]}
     local _LOG_FILE=${0}
@@ -526,7 +552,12 @@ DEBUG() {
 }
 
 log_trace() {
-    (( LOG4SH_COLOR )) && LOG4SH_COLOR_BEGIN=$LOG4SH_TRACE_COLOR || LOG4SH_COLOR_BEGIN=''
+    if (( LOG4SH_COLOR )); then
+        LOG4SH_COLOR_BEGIN=$LOG4SH_TRACE_COLOR
+    else
+        LOG4SH_COLOR_BEGIN=''
+        LOG4SH_COLOR_END=''
+    fi
     local _LOG_LVL="TRACE"
     local _LOG_FUNC=${FUNCNAME[1]}
     local _LOG_FILE=${0}
