@@ -61,9 +61,24 @@
 #
 #===============================================================================
 
-if ! type local 2>&1 1>/dev/null; then
-    alias local=typeset
+if ! type local >/dev/null 2>&1; then
+    alias -x local=typeset
 fi
+
+_log4sh_which_shell() {
+    local shell=$(ps -o command -p $$ | tail -n1)
+        printf "unknown [$shell]\n"
+    if [[ "$shell" = @(*ksh93*) ]]; then
+        printf "ksh_93"
+    elif [[ "$shell" = @(-ksh|ksh) ]]; then
+        printf "ksh_88"
+    elif [[ "$shell" = @(*bash*) ]]; then
+        printf "bash"
+    else
+        printf "unknown [$shell]\n"
+        return 1
+    fi
+}
 
 _log4sh_usage() {
     printf "Usage:\n\t. log4sh.sh [-l level] [-t 0|1] [-T 0|1] [-c 0|1] [-qhD] [-f file] [-d path to GNU date]\n\n"
@@ -141,7 +156,7 @@ _log4sh_show_usage() {
     printf '%s\n' ' * LOG4SH_TRACE_COLOR="$LOG4SH_COLOR_CYAN"'
 }
 
-_log4sh_init_variables() {
+function _log4sh_init_variables {
     # some default variables' values, can be overwritten in shell
     : ${LOG4SH_DATE=0}                            # do print timestamp?
     : ${LOG4SH_DATE_LOG=1}                        # print timestamp only in log file
@@ -265,7 +280,21 @@ EOF
     fi
 }
 
-log4sh_init() {
+_log4sh_which_shell() {
+    local shell=$(ps -o command -p $$ | tail -n1)
+    if [[ "$shell" = @(ksh93) ]]; then
+        printf "ksh"
+    elif [[ "$shell" = @(-ksh|ksh) ]]; then
+        printf "ksh"
+    elif [[ "$shell" = @(bash) ]]; then
+        printf "bash"
+    else
+        printf "unknown $shell"
+        return 1
+    fi
+}
+
+function log4sh_init {
     local program_options='c:d:f:l:t:T:Dhqpu'
     local options retval
     options=$(getopt $program_options $* 2>/dev/null)
@@ -298,45 +327,19 @@ log4sh_init() {
 }
 
 log4sh_deinit() {
-    local functions=(
-        log_fatal FATAL log_die DIE log_error ERROR LOGEXIT log_warn WARN log_info log INFO log_debug DEBUG log_trace TRACE
-        _log4sh _log4sh_data _log4sh_dispatch _log4sh_do_dispatch _log4sh_level _log4sh_date _log4sh_init_variables
-        _log4sh_help _log4sh_show_usage _log4sh_usage
-        log4sh_deinit log4sh_init
-    )
-    local variables=(
-        LOG4SH_DATE
-        LOG4SH_DATE_LOG
-        LOG4SH_DATE_FORMAT
-        LOG4SH_DEFAULT_DATE_FORMAT
-        LOG4SH_COLOR
-        LOG4SH_QUIET
-        LOG4SH_LEVEL
-        LOG4SH_FORMAT
-        LOG4SH_DEFAULT_FORMAT
-        LOG4SH_DEFAULT_SHORT_FORMAT
-        LOG4SH_DATE_BIN
-        LOG4SH_FILE
-        LOG4SH_DEBUG_LOG
-        LOG4SH_COLOR_BOLD
-        LOG4SH_COLOR_RED
-        LOG4SH_COLOR_WHITE
-        LOG4SH_COLOR_GREEN
-        LOG4SH_COLOR_YELLOW
-        LOG4SH_COLOR_BLUE
-        LOG4SH_COLOR_CYAN
-        LOG4SH_COLOR_OFF
-        LOG4SH_DEFAULT_COLOR
-        LOG4SH_ERROR_COLOR
-        LOG4SH_FATAL_COLOR
-        LOG4SH_INFO_COLOR
-        LOG4SH_SUCCESS_COLOR
-        LOG4SH_WARN_COLOR
-        LOG4SH_DEBUG_COLOR
-        LOG4SH_TRACE_COLOR
-        LOG4SH_COLOR_BEGIN
-        LOG4SH_COLOR_END
-    )
+    local functions variables
+    local shell=$(_log4sh_which_shell|cut -d_ -f1)
+    local version=$(_log4sh_which_shell|cut -d_ -f2)
+    if [[ "$shell" = bash ]]; then
+        eval $(echo "functions=( log_fatal FATAL log_die DIE log_error ERROR LOGEXIT log_warn WARN log_info log INFO log_debug DEBUG log_trace TRACE _log4sh _log4sh_data _log4sh_dispatch _log4sh_do_dispatch _log4sh_level _log4sh_date _log4sh_init_variables _log4sh_help _log4sh_show_usage _log4sh_usage log4sh_deinit log4sh_init )")
+        eval $(echo "variables=( LOG4SH_DATE LOG4SH_DATE_LOG LOG4SH_DATE_FORMAT LOG4SH_DEFAULT_DATE_FORMAT LOG4SH_COLOR LOG4SH_QUIET LOG4SH_LEVEL LOG4SH_FORMAT LOG4SH_DEFAULT_FORMAT LOG4SH_DEFAULT_SHORT_FORMAT LOG4SH_DATE_BIN LOG4SH_FILE LOG4SH_DEBUG_LOG LOG4SH_COLOR_BOLD LOG4SH_COLOR_RED LOG4SH_COLOR_WHITE LOG4SH_COLOR_GREEN LOG4SH_COLOR_YELLOW LOG4SH_COLOR_BLUE LOG4SH_COLOR_CYAN LOG4SH_COLOR_OFF LOG4SH_DEFAULT_COLOR LOG4SH_ERROR_COLOR LOG4SH_FATAL_COLOR LOG4SH_INFO_COLOR LOG4SH_SUCCESS_COLOR LOG4SH_WARN_COLOR LOG4SH_DEBUG_COLOR LOG4SH_TRACE_COLOR LOG4SH_COLOR_BEGIN LOG4SH_COLOR_END )")
+    elif [[ "$shell" = ksh ]]; then
+        eval $(echo "set -A functions log_fatal FATAL log_die DIE log_error ERROR LOGEXIT log_warn WARN log_info log INFO log_debug DEBUG log_trace TRACE _log4sh _log4sh_data _log4sh_dispatch _log4sh_do_dispatch _log4sh_level _log4sh_date _log4sh_init_variables _log4sh_help _log4sh_show_usage _log4sh_usage log4sh_deinit log4sh_init")
+        eval $(echo "set -A variables LOG4SH_DATE LOG4SH_DATE_LOG LOG4SH_DATE_FORMAT LOG4SH_DEFAULT_DATE_FORMAT LOG4SH_COLOR LOG4SH_QUIET LOG4SH_LEVEL LOG4SH_FORMAT LOG4SH_DEFAULT_FORMAT LOG4SH_DEFAULT_SHORT_FORMAT LOG4SH_DATE_BIN LOG4SH_FILE LOG4SH_DEBUG_LOG LOG4SH_COLOR_BOLD LOG4SH_COLOR_RED LOG4SH_COLOR_WHITE LOG4SH_COLOR_GREEN LOG4SH_COLOR_YELLOW LOG4SH_COLOR_BLUE LOG4SH_COLOR_CYAN LOG4SH_COLOR_OFF LOG4SH_DEFAULT_COLOR LOG4SH_ERROR_COLOR LOG4SH_FATAL_COLOR LOG4SH_INFO_COLOR LOG4SH_SUCCESS_COLOR LOG4SH_WARN_COLOR LOG4SH_DEBUG_COLOR LOG4SH_TRACE_COLOR LOG4SH_COLOR_BEGIN LOG4SH_COLOR_END")
+    else
+        printf "ERROR - shell [$shell] is not supported\n"
+        return 1
+    fi
 
     for names in ${functions[*]}; do
         unset -f $names
