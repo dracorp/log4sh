@@ -67,15 +67,14 @@ fi
 
 _log4sh_which_shell() {
     local shell=$(ps -o command -p $$ | tail -n1)
-        printf "unknown [$shell]\n"
-    if [[ "$shell" = @(*ksh93*) ]]; then
+    if [[ "$shell" = *@(ksh93)* ]]; then
         printf "ksh_93"
-    elif [[ "$shell" = @(-ksh|ksh) ]]; then
+    elif [[ "$shell" = *@(-ksh|ksh)* ]]; then
         printf "ksh_88"
-    elif [[ "$shell" = @(*bash*) ]]; then
+    elif [[ "$shell" = *@(bash)* ]]; then
         printf "bash"
     else
-        printf "unknown [$shell]\n"
+        printf "unknown $shell\n"
         return 1
     fi
 }
@@ -277,20 +276,6 @@ EOF
     else
         printf "FATAL - Missing GNU date. I cannot use AIX or other date.\n"
         return
-    fi
-}
-
-_log4sh_which_shell() {
-    local shell=$(ps -o command -p $$ | tail -n1)
-    if [[ "$shell" = @(ksh93) ]]; then
-        printf "ksh"
-    elif [[ "$shell" = @(-ksh|ksh) ]]; then
-        printf "ksh"
-    elif [[ "$shell" = @(bash) ]]; then
-        printf "bash"
-    else
-        printf "unknown $shell"
-        return 1
     fi
 }
 
