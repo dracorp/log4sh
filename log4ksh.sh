@@ -1,1 +1,1 @@
-log4sh.sh
+bin/log4sh
